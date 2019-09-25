@@ -14,14 +14,16 @@ item array[] = {
 };
 
 void sort(item *a, int n) {
-    int i = 0, j = 0;
+    int i = 0, j = 0, c = 0;
     int s = 1;
     item* p;
 
-    for(; i < n & s != 0; i++) {
+    for(; (i < n) && (s != 0); i++) {
         s = 0;
         p = a;
         j = n-1;
+        c = 1;
+        //Añadimos el contador de vueltas c con el que vamos a ir aumentando el puntero. Tambien ajustamos la j para que no se salga de rango
         do {
             if( p->key > (p+1)->key) {
                 item t = *p;
@@ -29,7 +31,9 @@ void sort(item *a, int n) {
                 *(p+1) = t;
                 s++;
             }
-        } while ( --j >= 0 );
+            p = a + c;
+            c++;
+        } while ( --j > 0 );
     }
 }
 

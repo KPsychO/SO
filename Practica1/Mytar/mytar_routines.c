@@ -142,7 +142,7 @@ int createTar(int nFiles, char *fileNames[], char tarName[]) {
 	int nBytes = 0;
 	int i;
 
-	if ((tFile = fopen(tarName, "w")) == NULL) return EXIT_FAILURE;
+	if ((tFile = fopen(tarName, "wb")) == NULL) return EXIT_FAILURE;
 
 	arr = malloc(sizeof(stHeaderEntry) * nFiles);
 
@@ -160,7 +160,7 @@ int createTar(int nFiles, char *fileNames[], char tarName[]) {
 
 	for(i = 0; i < nFiles; i++){
 
-		iFile = fopen(fileNames[i], "r");
+		iFile = fopen(fileNames[i], "rb");
 		if (iFile == NULL) return EXIT_FAILURE;
 		nBytes = copynFile(iFile, tFile, INT_MAX);
 		fclose(iFile);
@@ -169,7 +169,7 @@ int createTar(int nFiles, char *fileNames[], char tarName[]) {
 	}
 
 	rewind(tFile);
-	
+
 	fwrite(&nFiles, sizeof(int), 1, tFile);
 	fwrite("\n", sizeof(char), 1, tFile);
 
@@ -215,13 +215,13 @@ int extractTar(char tarName[]) {
 	int n_files = 0;
 	int i;
 
-	if((tFile = fopen(tarName, "r")) == NULL) return EXIT_FAILURE;
+	if((tFile = fopen(tarName, "rb")) == NULL) return EXIT_FAILURE;
 
 	arr = readHeader(tFile, &n_files);
 
 	for(i = 0; i < n_files; i++){
 
-		oFile = fopen(arr[i].name, "w");
+		oFile = fopen(arr[i].name, "wb");
 		nCopied = copynFile(tFile, oFile, arr[i].size);
 		printf("[%d]: Creando fichero %s, tamano %d Bytes...Ok\n", i, arr[i].name, nCopied);
 		fclose(oFile);
