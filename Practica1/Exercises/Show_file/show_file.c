@@ -12,23 +12,17 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
-	/* Open file */
 	if ((file = fopen(argv[1], "r")) == NULL)
 		err(2,"The input file %s could not be opened",argv[1]);
 
-	/* Read file byte by byte */
+	// We use c as a control variable 
+    while ((c = fread(buffer, sizeof(char), 1, file))){
 
-      //En fread mantenemos c como variable de control dado que devuelve un error al entrar en EOF, le pasamos por parametro el buffer donde guardarmos los char, el tamaño en bytes, el numero de bytes (1 a 1) y el origen, en este caso file
-	
-      while ((c = fread(buffer, sizeof(char), 1, file))){
+		fwrite(buffer, sizeof(char), 1, stdout);
 
-      //Eliminamos la variable ret dado que no la necesitaremos como control ya que imprimimos por pantalla.
-
-      //En fwrite pasamos por parametro el buffer, tamaño en bytes, numero de bytes, y el destino
-	fwrite(buffer, sizeof(char), 1, stdout);
-
-      }
+    }
 
 	fclose(file);
 	return 0;
+	
 }

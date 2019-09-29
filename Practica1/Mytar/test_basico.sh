@@ -47,11 +47,5 @@ for i in "${farray[@]}"; do
 done;
 
 # 9. Si los tres ficheros extraídos son iguales que los originales, volverá al directorio original (../..), mostrará el mensaje “Correct” por pantalla y devolverá 0. Si hay algún error, volverá al directorio original, mostrará un mensaje descriptivo por pantalla y devolverá 1.
-echo "Basic: correct"
-
-# 10. Creamos un fichero nuevo (file4.txt) y lo anadimos al tar existente, guardandolo como tarfile.new.mtar
-cd ..
-echo "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM" > file4.txt
-../mytar -a -f tarfile.mtar file4.txt || { echo "Error while appending file4.txt to existing tarfile.mtar" >&2; exit 1; }
-echo "Append: Correcto"
+echo "Correct"
 exit 0

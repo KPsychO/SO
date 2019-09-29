@@ -23,7 +23,8 @@ void sort(item *a, int n) {
         p = a;
         j = n-1;
         c = 1;
-        //Añadimos el contador de vueltas c con el que vamos a ir aumentando el puntero. Tambien ajustamos la j para que no se salga de rango
+        // Added iteration counter c, wich increments the pointer.
+        // Avoid j to get out of range
         do {
             if( p->key > (p+1)->key) {
                 item t = *p;

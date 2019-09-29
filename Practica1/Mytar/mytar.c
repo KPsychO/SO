@@ -1,24 +1,26 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
        
 #include "mytar.h"
        
-char use[]="Usage: tar -c|x -f file_mytar [file1 file2 ...]\n";
+char use[]="Usage: tar -c|x|l|a -f file_mytar [file1 file2 ...]\n";
 
 int main(int argc, char *argv[]) {
 
   int opt, nExtra, retCode=EXIT_SUCCESS;
   flags flag=NONE;
   char *tarName=NULL;
-  
+  char *newTarName=NULL;
+
   //Minimum args required=3: mytar -tf file.tar
   if(argc < 2){
     fprintf(stderr,"%s",use);
     exit(EXIT_FAILURE);
   }
   //Parse command-line options
-  while((opt = getopt(argc, argv, "cxf:")) != -1) {
+  while((opt = getopt(argc, argv, "cxlaf:")) != -1) {
     switch(opt) {
       case 'c':
         flag=(flag==NONE)?CREATE:ERROR;
@@ -26,6 +28,10 @@ int main(int argc, char *argv[]) {
       case 'x':
         flag=(flag==NONE)?EXTRACT:ERROR;
         break;
+      case 'l':
+        flag=(flag==NONE)?LIST:ERROR;
+      case 'a':
+        flag=(flag==NONE)?ADD:ERROR;
       case 'f':
         tarName = optarg;
         break;
@@ -60,6 +66,13 @@ int main(int argc, char *argv[]) {
       }
       retCode=extractTar(tarName);
       break;
+    case LIST:
+      retCode=listTar(tarName);
+    case ADD:
+      newTarName = malloc(strlen(tarName) + 6);
+      strncpy(newTarName, tarName, strlen(tarName) - 5);
+      strcat(newTarName, ".new.mtar");
+      retCode=addFileToTar(nExtra, &argv[optind], tarName, newTarName);
     default:
       retCode=EXIT_FAILURE;
   }
