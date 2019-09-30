@@ -68,13 +68,16 @@ int main(int argc, char *argv[]) {
       break;
     case LIST:
       retCode=listTar(tarName);
+      break;
     case ADD:
       newTarName = malloc(strlen(tarName) + 6);
       strncpy(newTarName, tarName, strlen(tarName) - 5);
       strcat(newTarName, ".new.mtar");
       retCode=addFileToTar(nExtra, &argv[optind], tarName, newTarName);
+      break;
     default:
       retCode=EXIT_FAILURE;
+      break;
   }
   exit(retCode);
 }
