@@ -5,7 +5,7 @@
        
 #include "mytar.h"
        
-char use[]="Usage: tar -c|x|l|a -f file_mytar [file1 file2 ...]\n";
+char use[]="Usage: tar -c|x|l|a|r -f file_mytar [file1 file2 ...]\n";
 
 int main(int argc, char *argv[]) {
 
@@ -13,14 +13,14 @@ int main(int argc, char *argv[]) {
   flags flag=NONE;
   char *tarName=NULL;
   char *newTarName=NULL;
-
+  
   //Minimum args required=3: mytar -tf file.tar
   if(argc < 2){
     fprintf(stderr,"%s",use);
     exit(EXIT_FAILURE);
   }
   //Parse command-line options
-  while((opt = getopt(argc, argv, "cxlaf:")) != -1) {
+  while((opt = getopt(argc, argv, "cxlarf:")) != -1) {
     switch(opt) {
       case 'c':
         flag=(flag==NONE)?CREATE:ERROR;
@@ -30,10 +30,15 @@ int main(int argc, char *argv[]) {
         break;
       case 'l':
         flag=(flag==NONE)?LIST:ERROR;
-      case 'a':
-        flag=(flag==NONE)?ADD:ERROR;
+        break;
       case 'f':
         tarName = optarg;
+        break;
+      case 'a':
+       flag=(flag==NONE)?ADD:ERROR;
+        break;
+      case 'r':
+       flag=(flag==NONE)?REMOVE:ERROR;
         break;
       default:
         flag=ERROR;
@@ -67,17 +72,22 @@ int main(int argc, char *argv[]) {
       retCode=extractTar(tarName);
       break;
     case LIST:
-      retCode=listTar(tarName);
-      break;
-    case ADD:
+  retCode=listTar(tarName);
+    break;
+     case ADD:
       newTarName = malloc(strlen(tarName) + 6);
       strncpy(newTarName, tarName, strlen(tarName) - 5);
-      strcat(newTarName, ".new.mtar");
+      strcat(newTarName, ".added.mtar");
       retCode=addFileToTar(nExtra, &argv[optind], tarName, newTarName);
+      break;
+    case REMOVE:
+      newTarName = malloc(strlen(tarName) + 6);
+      strncpy(newTarName, tarName, strlen(tarName) - 5);
+      strcat(newTarName, ".removed.mtar");
+      retCode=removeFileFromTar(nExtra, &argv[optind], tarName, newTarName);
       break;
     default:
       retCode=EXIT_FAILURE;
-      break;
   }
   exit(retCode);
 }
