@@ -474,14 +474,105 @@ static int my_truncate(const char *path, off_t size)
     return 0;
 }
 
+static int my_unlink(const char *path){
+
+	int i;
+	int idxNodoi;
+	int currentBlock;
+	char block[BLOCK_SIZE_BYTES];
+
+	if(strlen(path + 1) > myFileSystem.superBlock.maxLenFileName) {
+		return -ENAMETOOLONG;
+	}
+
+	/*
+	Sets al the block to 0 since it's necesary to erase the info from the block of the file we want to delete
+	*/
+	memset(block, 0, sizeof(char)*BLOCK_SIZE_BYTES);
+
+	fprintf(stderr, "--->>>my_unlink: path %s\n", path);
+
+	/*
+	Searchs for the iNode of the file
+	*/
+
+	if ((idxNodoi = findFileByName(&myFileSystem, (char*) path+1)) == -1)
+		return -EEXIST;
+	
+	// Bit map
+	/*
+	Frees the all the block of the file
+	*/
+	for(i = 0; i < myFileSystem.nodes[idxNodoi]->numBlocks; i++){
+
+		currentBlock = myFileSystem.nodes[idxNodoi] -> blocks[i];
+
+		myFileSystem.bitMap[currentBlock] = 0;
+
+		// Erases from the disk the info from the block correspondig to the file
+		if ((lseek(myFileSystem.fdVirtualDisk, currentBlock * BLOCK_SIZE_BYTES, SEEK_SET) == (off_t) -1) || (write(myFileSystem.fdVirtualDisk, &block, BLOCK_SIZE_BYTES) == -1)){
+
+			perror("lseek/write in my_unlink failed.\n");
+			return -EIO;
+
+		}
+
+	}
+
+	updateBitmap(&myFileSystem);
+
+	// Directory
+	/*
+	updates the directory
+	*/
+	myFileSystem.directory.files[myFileSystem.directory.files[idxNodoi].nodeIdx].freeFile =1;
+	memset(myFileSystem.directory.files[idxNodoi].fileName, '\0', sizeof(char)*(MAX_LEN_FILE_NAME + 1));
+	/*
+	Updates the number of files sice we have 1 file less
+	*/
+	myFileSystem.directory.numFiles--;
+
+	updateDirectory(&myFileSystem);
+
+	// iNodes on disk
+	/*
+	We have to free the iNode asociated to the file we want to erase and save it to disk
+	*/
+	myFileSystem.nodes[myFileSystem.directory.files[idxNodoi].nodeIdx]->freeNode = 1;
+
+	updateNode(&myFileSystem, myFileSystem.directory.files[idxNodoi].nodeIdx, myFileSystem.nodes[idxNodoi]);
+
+	// iNodes on memory
+	/*
+	frees the memory used by the inode in memory and makes it point to NULL
+	*/
+	free(myFileSystem.nodes[myFileSystem.directory.files[idxNodoi].nodeIdx]);
+	myFileSystem.nodes[myFileSystem.directory.files[idxNodoi].nodeIdx] = NULL;
+
+	/*
+	updates the number of free inodes
+	*/
+	myFileSystem.numFreeNodes++;
+
+	// Superblock
+	/*
+	updates the number of free blocks
+	*/
+	myFileSystem.superBlock.numOfFreeBlocks = myQuota(&myFileSystem);
+	updateSuperBlock(&myFileSystem);
+
+	return 0;
+
+}
 
 struct fuse_operations myFS_operations = {
     .getattr	= my_getattr,					// Obtain attributes from a file
     .readdir	= my_readdir,					// Read directory entries
     .truncate	= my_truncate,					// Modify the size of a file
-    .open		= my_open,						// Oeen a file
+    .open		= my_open,						// Open a file
     .write		= my_write,						// Write data into a file already opened
     .release	= my_release,					// Close an opened file
     .mknod		= my_mknod,						// Create a new file
+	.unlink 	= my_unlink					// Borrar un fichero existente
 };
 
