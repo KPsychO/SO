@@ -7,14 +7,14 @@ echo "Creating ./mountpoint"
 rm -rf mount-point/*
 
 echo "Copying fuseLib.c & myFS.h to ./tmp & ./mount-point"
-cp scr/fuseLib.c tmp/fuseLib.c
+cp src/fuseLib.c tmp/fuseLib.c
 cp src/myFS.h tmp/myFS.h
 
 cp src/fuseLib.c mount-point/fuseLib.c
 cp src/myFS.h mount-point/myFS.h
 
 echo "Auditing disk"
-./my-fsck-static-64 mount-point
+./my-fsck-static-64 virtual-disk
 
 sleep 5
 
@@ -32,8 +32,8 @@ fi
 sleep 5
 
 echo "Modifiying the size of fuseLib.c on ./mount-point % ./tmp"
-truncate mount-point/fuseLib.c -s -1
-truncate tmp/fuseLib.c -s -1
+truncate -s 16384 mount-point/fuseLib.c
+truncate -s 16384 tmp/fuseLib.c
 
 echo "Comparing the modified files"
 if diff tmp/fuseLib.c mount-point/fuseLib.c
@@ -48,7 +48,7 @@ echo "qwertyuiopasdfgherihuvdcksmlwodjeihnkwmdwojfihebnjklzxcvbnm" > tmp/file.tx
 cp tmp/file.txt mount-point/file.txt
 
 echo "Auditing disk"
-./my-fsck-static-64 mount-point
+./my-fsck-static-64 virtual-disk
 
 sleep 5
 
@@ -61,11 +61,11 @@ fi
 sleep 5
 
 echo "Modifying myFS.h on ./tmp & ./mount-point"
-truncate mount-point/myFS.h -s +5
-truncate tmp/myFS.h -s +5
+truncate -s 12288 mount-point/myFS.h
+truncate -s 12288 tmp/myFS.h
 
 echo "Auditing disk"
-./my-fsck-static-64 mount-point
+./my-fsck-static-64 virtual-disk
 
 sleep 5
 
