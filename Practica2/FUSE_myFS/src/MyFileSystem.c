@@ -11,7 +11,8 @@ MyFileSystem myFileSystem;
 #define EXAMPLE		"Example:\n%s -t 2097152 -a virtual-disk -f '-d -s mount-point'\n"
 #define EXAMPLE2 	"Example:\n%s -m -a <virtual-disk> -f '-d -s mount-point'\n"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     myFileSystem.numFreeNodes = MAX_NODES;
 
     int ret; // Resulting code of the functions call
