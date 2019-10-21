@@ -563,36 +563,6 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
 	return size;
 }
 
-
-int my_link(const char * orig, const char * dest){
-
-    // Check that the length of the file name is valid
-    if(strlen(dest + 1) > myFileSystem.superBlock.maxLenFileName) return -ENAMETOOLONG;
-    
-    // Checks if there's still space for a new file
-    if(myFileSystem.directory.numFiles >= MAX_FILES_PER_DIRECTORY) return -ENOSPC;
-
-    int idxOrig = findFileByName(&myFileSystem, (char *)orig + 1);
-    
-    int idxDest;
-
-    if((idxDest = findFreeFile(&myFileSystem)) == -1) return -ENOSPC;
-
-    myFileSystem.directory.files[idxDest].freeFile = false;
-    myFileSystem.directory.numFiles++;
-    strcpy(myFileSystem.directory.files[idxDest].fileName, dest + 1);
-    
-    // Sets values in origin node
-    int idxNodoI = myFileSystem.directory.files[idxOrig].nodeIdx;
-    myFileSystem.nodes[idxNodoI]->nlinks++;
-    myFileSystem.directory.files[idxDest].nodeIdx = idxNodoI;
-    myFileSystem.nodes[myFileSystem.directory.files[idxDest].nodeIdx]->type = 2;  
-    updateDirectory(&myFileSystem);
-    updateNode(&myFileSystem, idxNodoI, myFileSystem.nodes[idxNodoI]);
-    
-    return 0;
-}
-
 struct fuse_operations myFS_operations = {
     .getattr 	= my_getattr,		// Obtain attributes from a file
     .readdir 	= my_readdir,		// Read directory entries
@@ -603,5 +573,4 @@ struct fuse_operations myFS_operations = {
     .mknod 		= my_mknod,			// Create a new file
 	.unlink 	= my_unlink,		// Deletes an existing file
 	.read 		= my_read,			// Reads data from a file
-    .link       = my_link,          // Links files
 };
