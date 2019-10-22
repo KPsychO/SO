@@ -563,6 +563,53 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
 	return size;
 }
 
+int my_symlink(const char *existingpath, const char *newpath){
+
+	fprintf(stderr, "--->>>my_symlink: existingpath %s, newpath %s\n", existingpath, newpath);
+
+	// Checks if the lenght of the file is valid
+	if (strlen(newpath + 1) > myFileSystem.superBlock.maxLenFileName) return -ENAMETOOLONG;
+
+	// Checks if there's a free i-node
+	if (myFileSystem.numFreeNodes <= 0) return -ENOSPC;
+
+	// Checks if there's room for another file in the directory
+	if (myFileSystem.directory.numFiles >= MAX_FILES_PER_DIRECTORY) return -ENOSPC;
+
+	// Checks that the file isn't already in the directory
+	if (findFileByName(&myFileSystem, (char*)newpath + 1) != -1) return -EEXIST;
+
+	// Searchs for a free node
+	int idxNodoI;
+	if ((idxNodoI = findFreeNode(&myFileSystem)) == -1) return -ENOSPC;
+
+	// Updates the root directory
+	myFileSystem.directory.files[idxNodoI].freeFile = false;
+	myFileSystem.directory.numFiles++;
+	strcpy(myFileSystem.directory.files[idxNodoI].fileName, newpath + 1);
+	myFileSystem.directory.files[idxNodoI].nodeIdx = idxNodoI;
+	myFileSystem.numFreeNodes--;
+
+	// Fills the new i-node info
+	if (myFileSystem.nodes[idxNodoI] == NULL)
+		myFileSystem.nodes[idxNodoI] = malloc(sizeof(NodeStruct));
+
+	myFileSystem.nodes[idxNodoI]->type = 1;
+	myFileSystem.nodes[idxNodoI]->fileSize = strlen(existingpath);
+	myFileSystem.nodes[idxNodoI]->numBlocks = 0;
+	myFileSystem.nodes[idxNodoI]->modificationTime = time(NULL);
+	myFileSystem.nodes[idxNodoI]->freeNode = false;
+	strcpy(myFileSystem.nodes[idxNodoI]->linkDestiny, existingpath);
+
+	// Save the modified structures
+	updateDirectory(&myFileSystem);
+	updateNode(&myFileSystem, idxNodoI, myFileSystem.nodes[idxNodoI]);
+	sync();
+
+	return 0;
+
+}
+
 struct fuse_operations myFS_operations = {
     .getattr 	= my_getattr,		// Obtain attributes from a file
     .readdir 	= my_readdir,		// Read directory entries
@@ -573,4 +620,5 @@ struct fuse_operations myFS_operations = {
     .mknod 		= my_mknod,			// Create a new file
 	.unlink 	= my_unlink,		// Deletes an existing file
 	.read 		= my_read,			// Reads data from a file
+	.symlink	= my_symlink, 		// Creates a symbolic link
 };
