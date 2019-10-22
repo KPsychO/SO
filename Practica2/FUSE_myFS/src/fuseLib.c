@@ -610,6 +610,35 @@ int my_symlink(const char *existingpath, const char *newpath){
 
 }
 
+int my_readlink(const char *path, char *buf, size_t bufsize){
+
+	int dir_idx;
+	FileStruct* directoryEntry = NULL;
+	NodeStruct* node = NULL;
+	char* name = (char*) path + 1;
+	int idxNodoI;
+
+	// Searchs for the directory
+	dir_idx = findFileByName(&myFileSystem, name);
+	if (dir_idx == -1) return -ENOENT;
+
+	directoryEntry = &myFileSystem.directory.files[dir_idx];
+	idxNodoI = directoryEntry->nodeIdx;
+	node = myFileSystem.nodes[idxNodoI];
+
+	if (node->type != 1) return -EINVAL;
+
+	// Reads the node path
+	if (bufsize < strlen(node->linkDestiny)) strcpy(buf, node->linkDestiny);
+	else{
+		strncpy(buf, node->linkDestiny, bufsize - 1);
+		buf[bufsize - 1] = '\0';
+	}
+
+	return 0;
+
+}
+
 struct fuse_operations myFS_operations = {
     .getattr 	= my_getattr,		// Obtain attributes from a file
     .readdir 	= my_readdir,		// Read directory entries
@@ -621,4 +650,5 @@ struct fuse_operations myFS_operations = {
 	.unlink 	= my_unlink,		// Deletes an existing file
 	.read 		= my_read,			// Reads data from a file
 	.symlink	= my_symlink, 		// Creates a symbolic link
+	.readlink 	= my_readlink,		// Reads a link
 };
