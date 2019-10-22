@@ -1,5 +1,7 @@
 # !/bin/bash
 
+echo "[WARNING: Remember to run fuse first!] './fs-fuse -t 2097152 -a virtual-disk -f '-d -s mount-point''"
+
 echo "Creating temporal folder ./tmp"
 rm -rf tmp/*
 
@@ -13,10 +15,10 @@ cp src/myFS.h tmp/myFS.h
 cp src/fuseLib.c mount-point/fuseLib.c
 cp src/myFS.h mount-point/myFS.h
 
-echo "Auditing disk"
-./my-fsck-static-64 virtual-disk
+#echo "Auditing disk"
+#./my-fsck-static-64 virtual-disk
 
-sleep 5
+#sleep 5
 
 echo "Showing differences between the original files and the copied ones"
 if diff tmp/fuseLib.c mount-point/fuseLib.c
@@ -29,8 +31,6 @@ then echo "myFS.h [EQUALS]"
 else echo "myFS.h [DIFFERENTS]"
 fi
 
-sleep 5
-
 echo "Modifiying the size of fuseLib.c on ./mount-point % ./tmp"
 truncate -s 16384 mount-point/fuseLib.c
 truncate -s 16384 tmp/fuseLib.c
@@ -41,16 +41,14 @@ then echo "fuseLib.c [EQUALS]"
 else echo "fuseLib.c [DIFFERENTS]"
 fi
 
-sleep 5
-
 echo "Creating a new text file in ./tmp and copiying it into ./mount-point"
 echo "qwertyuiopasdfgherihuvdcksmlwodjeihnkwmdwojfihebnjklzxcvbnm" > tmp/file.txt
 cp tmp/file.txt mount-point/file.txt
 
-echo "Auditing disk"
-./my-fsck-static-64 virtual-disk
+#echo "Auditing disk"
+#./my-fsck-static-64 virtual-disk
 
-sleep 5
+#sleep 5
 
 echo "Comparing the text files"
 if diff tmp/file.txt mount-point/file.txt
@@ -58,24 +56,20 @@ then echo "file.txt [EQUALS]"
 else echo "file.txt [DIFFERENTS]"
 fi
 
-sleep 5
-
 echo "Modifying myFS.h on ./tmp & ./mount-point"
 truncate -s 12288 mount-point/myFS.h
 truncate -s 12288 tmp/myFS.h
 
-echo "Auditing disk"
-./my-fsck-static-64 virtual-disk
+#echo "Auditing disk"
+#./my-fsck-static-64 virtual-disk
 
-sleep 5
+#sleep 5
 
 echo "Comparing myFS.h on ./tmp & ./mount-point"
 if diff tmp/myFS.h mount-point/myFS.h
 then echo "myFS.h [EQUALS]"
 else echo "myFS.h [DIFFERENTS]"
 fi
-
-sleep 5
 
 echo "Ending fusermount"
 fusermount -u mount-point
