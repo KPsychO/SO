@@ -182,7 +182,10 @@ static int my_getattr(const char *path, struct stat *stbuf)
     if((idxDir = findFileByName(&myFileSystem, (char *)path + 1)) != -1) {
         node = myFileSystem.nodes[myFileSystem.directory.files[idxDir].nodeIdx];
         stbuf->st_size = node->fileSize;
-        stbuf->st_mode = S_IFREG | 0644;
+        if(node->type == 1)
+	        stbuf->st_mode = S_IFLNK | 0644;
+	    else
+	    	stbuf->st_mode = S_IFREG | 0644;
         stbuf->st_nlink = 1;
         stbuf->st_uid = getuid();
         stbuf->st_gid = getgid();
