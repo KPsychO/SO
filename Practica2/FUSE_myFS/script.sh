@@ -1,12 +1,21 @@
 # !/bin/bash
 
-echo "[WARNING: Remember to run fuse first!] './fs-fuse -t 2097152 -a virtual-disk -f '-d -s mount-point''"
-
 echo "Creating temporal folder ./tmp"
-rm -rf tmp/*
+if [[ -d tmp ]] # [[  ]] = test
+then rm -rf tmp/*
+else mkdir tmp
+fi
 
 echo "Creating ./mountpoint"
-rm -rf mount-point/*
+if [[ -d mount-point ]]
+then rm -rf mount-point/*
+else mkdir mount-point
+fi
+
+echo "Starting fuse"
+./fs-fuse -t 2097152 -a virtual-disk -f '-d -s mount-point' 2>outputerr.txt > output.txt &
+
+sleep 5
 
 echo "Copying fuseLib.c & myFS.h to ./tmp & ./mount-point"
 cp src/fuseLib.c tmp/fuseLib.c
@@ -73,3 +82,10 @@ fi
 
 echo "Ending fusermount"
 fusermount -u mount-point
+
+echo "Cleaning temporal folder ./tmp"
+rm -rf tmp/*
+
+echo "Cleaning ./mountpoint"
+rm -rf mount-point/*
+
