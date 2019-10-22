@@ -568,7 +568,7 @@ static int my_read(const char *path, char *buf, size_t size, off_t offset, struc
 
 int my_symlink(const char *existingpath, const char *newpath){
 
-	fprintf(stderr, "--->>>my_symlink: existingpath %s, newpath %s\n", existingpath, newpath);
+	fprintf(stderr, "--->>>my_symlink: existingpath: %s, newpath: %s\n", existingpath, newpath);
 
 	// Checks if the lenght of the file is valid
 	if (strlen(newpath + 1) > myFileSystem.superBlock.maxLenFileName) return -ENAMETOOLONG;
