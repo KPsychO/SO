@@ -8,6 +8,9 @@
 pthread_t philosophers[NR_PHILOSOPHERS];
 pthread_mutex_t forks[NR_PHILOSOPHERS];
 
+sem_t mutex;
+sem_t S[N];
+
 
 void init()
 {
@@ -38,6 +41,12 @@ void toSleep(int i) {
     
 }
 
+void test(int i){
+
+    if()
+
+}
+
 void* philosopher(void* i)
 {
     int nPhilosopher = (int)i;
@@ -49,6 +58,7 @@ void* philosopher(void* i)
         think(nPhilosopher);
         
         /// TRY TO GRAB BOTH FORKS (right and left)
+
 
         eat(nPhilosopher);
         
@@ -63,6 +73,13 @@ int main()
 {
     init();
     unsigned long i;
+
+    // initialize the semaphores 
+    sem_init(&mutex, 0, 1); 
+  
+    for (i = 0; i < N; i++) 
+        sem_init(&S[i], 0, 0); 
+
     for(i=0; i<NR_PHILOSOPHERS; i++)
         pthread_create(&philosophers[i], NULL, philosopher, (void*)i);
     

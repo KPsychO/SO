@@ -34,8 +34,6 @@ void * partial_sum(void * arg) {
 }
 
 int main(int argc, char **argv) {
-  
-  // pthread_t th1, th2;
 
   if (argc != 3) {  
   	printf("Error parsing arguments.\n");
@@ -50,7 +48,7 @@ int main(int argc, char **argv) {
   // 0 -> compartido entre trheads
   // 1 -> Compartido entre los procesos
 
-  // Segundo aprametro
+  // Segundo parametro
   // Init value => numero de proesos a entrar al semaforo antes de cerrarse
 
 
@@ -84,6 +82,8 @@ int main(int argc, char **argv) {
 
   // pthread_join(th1, NULL);
   // pthread_join(th2, NULL);
+
+  // Join the treads
   for(int i = 0; i < atoi(argv[1]); i++){
     pthread_join(thread_array[i].thread_id, NULL);
   }
