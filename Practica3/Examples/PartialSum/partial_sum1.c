@@ -5,7 +5,7 @@
 #include <math.h>
 
 typedef struct thread {
-  pthread thread_id;
+  pthread_t thread_id;
   int init_val;
   int fin_val;
 } ThreadData;
@@ -14,10 +14,14 @@ int total_sum = 0;
 sem_t sem;
 
 void * partial_sum(void * arg) {
-  
+ 
+  ThreadData *data = (ThreadData * ) arg;
   int j = 0;
-  int ni=((int*)arg)[0];
-  int nf=((int*)arg)[1];
+  int ni=data->init_val;
+  int nf=data->fin_val;
+  
+  printf("ni = %d \n", ni);
+  printf("nf = %d \n", nf);
 
   for (j = ni; j <= nf; j++){
   	sem_wait(&sem);
@@ -30,7 +34,8 @@ void * partial_sum(void * arg) {
 }
 
 int main(int argc, char **argv) {
-  pthread_t th1, th2;
+  
+  // pthread_t th1, th2;
 
   if (argc != 3) {  
   	printf("Error parsing arguments.\n");
@@ -53,35 +58,37 @@ int main(int argc, char **argv) {
 
   ThreadData thread_array[atoi(argv[1])];
 
-  int interval = floor(argv[2] / argv[1]);
+  int interval = floor(atoi(argv[2]) / atoi(argv[1]));
 
-  for(int i = 0; i < argv[1]; i++){
+  for(int i = 0; i < atoi(argv[1]); i++){
 
     thread_array[i].init_val = 1 + (i*interval);
-    thread_array[i].fin_val = interval + (i*interval);
+    if (atoi(argv[1]) == i +1) thread_array[i].fin_val = atoi(argv[2]);
+    else thread_array[i].fin_val = interval + (i*interval);
 
   }
 
 
-  for(int i = 0; i < argv[1]; i++){
-    // create the threads
-      // THE NUMBERS MUST EB PASSES AS
-        // threads_array + i
-        // cant pass by index
+  // create the threads
+  for(int i = 0; i < atoi(argv[1]); i++){
+    pthread_create(&(thread_array[i].thread_id), NULL, partial_sum, (void *)(thread_array + i));
   }
 
   /* Two threads are created */
 
-  pthread_create(&th1, NULL, partial_sum, (void*)num1);
-  pthread_create(&th2, NULL, partial_sum, (void*)num2);
+  // pthread_create(&th1, NULL, partial_sum, (void*)num1);
+  // pthread_create(&th2, NULL, partial_sum, (void*)num2);
 
 
   /* the main thread waits until both threads complete */
 
-  pthread_join(th1, NULL);
-  pthread_join(th2, NULL);
+  // pthread_join(th1, NULL);
+  // pthread_join(th2, NULL);
+  for(int i = 0; i < atoi(argv[1]); i++){
+    pthread_join(thread_array[i].thread_id, NULL);
+  }
 
-  printf("total_sum=%d and it should be 50005000\n", total_sum);
+  printf("total_sum = %d \n", total_sum);
 
   sem_destroy(&sem);
 
