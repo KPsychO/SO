@@ -132,10 +132,7 @@ void cleanup_module(void)
     /*
      * Unregister the device
      */
-    unregis
-
-PsychO, [30.11.19 14:32]
-ter_chrdev_region(start, 1);
+    unregister_chrdev_region(start, 1);
 }
 
 /*
