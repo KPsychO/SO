@@ -3,12 +3,19 @@
 #include <time.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/inotify.h>
+
+#define EVENT_SIZE  ( sizeof (struct inotify_event) )
+#define EVENT_BUF_LEN     ( 1024 * ( EVENT_SIZE + 16 ) )
 
 int selectPatternMenu();
 int selectSpeed();
 void contadorBinarioAscendente(int file, int vel);
 void circular(int file, int vel);
 void alternando(int file, int vel);
+void si(int file);
 
 int main() {
 
@@ -35,6 +42,7 @@ int main() {
                 break;
 
             case 4:
+            	si(ledsFile);
                 break;
 
             default: 
@@ -58,7 +66,7 @@ int selectPatternMenu(){
     printf("1- Contador binario ascendente.\n");
     printf("2- Circular\n");
     printf("3- Alternando\n");
-    printf("4- Disk I/O (si sale xD)\n");
+    printf("4- Monitorea diferentes opciones\n");
     printf("Introduzca su opcion: ");
     scanf("%i", &pattern);
     printf("-----------------------------------\n");
@@ -119,5 +127,61 @@ void alternando(int file, int vel){
     }
 
     write(file, "0", 1);
+
+}
+
+void si(int file){
+
+	int fd;
+	int wd;
+	char buffer[EVENT_BUF_LEN];
+	int length;
+	int i;
+	int op;
+
+	fd = inotify_init();
+	if ( fd < 0 )
+    	perror("inotify_init");
+
+    printf("Chose the device to monitor:\n");
+    printf("1- Touchpad\n");
+    printf("2- USB keyboard\n");
+    printf("3- Keyboard\n");
+    printf("4- CPU\n");
+
+    scanf("%d",&op);
+
+    if (op == 1) wd = inotify_add_watch(fd, "/dev/input/by-path/pci-0000:00:15.1-platform-i2c_designware.1-event-mouse", IN_ACCESS);
+    else if (op == 2) wd = inotify_add_watch(fd, "/dev/input/by-id/usb-Cherry_GmbH_SmartBoard_XX44-event-kbd", IN_ACCESS);
+    else if (op == 3) wd = inotify_add_watch(fd, "/dev/input/by-path/platform-i8042-serio-0-event-kbd", IN_ACCESS);
+    else if (op == 4) wd = inotify_add_watch(fd, "/proc/stat", IN_ACCESS);
+    else wd = inotify_add_watch(fd, "/dev/input/by-id/usb-LITEON_Technology_USB_Multimedia_Keyboard-event-kbd", IN_ACCESS);
+
+    while(1){
+
+    	i = 0;
+    	length = read(fd, buffer, EVENT_BUF_LEN);
+
+    	while ( i < length ) {   
+
+    		struct inotify_event *event = ( struct inotify_event * ) &buffer[ i ];   
+
+			if(event->mask & IN_ACCESS){
+				printf("event detected IN_ACCESS\n");
+				write(file, "123", 3);
+				usleep(50);
+
+			}
+
+			i += EVENT_SIZE + event->len;
+
+    	}
+    	
+		write(file, "", 1);
+
+    }
+
+    inotify_rm_watch(fd, wd);
+    close(fd);
 
 }
